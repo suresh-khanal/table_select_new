@@ -590,21 +590,32 @@ console.log('DataTable:', $.fn.DataTable);
 function buildTableForLayer(layer) {
   if (!layer?.getSource) return;
 
+  updateTableTitle(layer);
+
   const features = layer.getSource().getFeatures();
   if (!features.length) return;
 
   const fields = getFeatureFields(features);
   const rowData = featuresToRows(features, fields);
 
-  if (table) {
-    table.destroy(false); // ✅ DO NOT remove table element
-    table = null;
+  // ✅ Safely destroy existing DataTable
+  if ($.fn.DataTable.isDataTable('#featureTable')) {
+    const dt = $('#featureTable').DataTable();
+    dt.clear();
+    dt.destroy(false);
   }
+
+  const tableEl = document.getElementById('featureTable');
+  if (!tableEl) return;
+
+  // ✅ FULL reset (critical when column count changes)
+  tableEl.querySelector('thead')?.remove();
+  tableEl.querySelector('tbody')?.remove();
+  tableEl.appendChild(document.createElement('tbody'));
 
   buildTableHeader(fields);
 
   const allowAll = features.length <= 2000;
-
   const lengthMenu = allowAll
     ? [[200, 500, 1000, 2000, -1], [200, 500, 1000, 2000, 'All']]
     : [[200, 500, 1000, 2000], [200, 500, 1000, 2000]];
@@ -631,11 +642,16 @@ function buildTableForLayer(layer) {
       row.dataset.uid = data._uid;
     }
   });
-  document.getElementById('featureListHeader').textContent =
-  layer.get('title') || 'Attribute'
+
 }
 
+function updateTableTitle(layer) {
+  const titleEl = document.querySelector('#featureListHeader .table-title');
+  if (!titleEl) return;
 
+  titleEl.textContent =
+    layer?.get?.('title') || 'Attribute Table';
+}
 
 let table = null;
 let currentLayerId = null;
@@ -661,6 +677,20 @@ layerSwitcher.on?.('select', () => {
   buildTableForLayer(layer);
 });
 
+document.getElementById('closeFeatureTable')
+  .addEventListener('click', () => {
+
+    // Hide table panel
+    const shell = document.getElementById('featureListShell');
+    shell.style.display = 'none';
+
+    // Clear selection highlight
+    $('#featureTable tbody tr')
+      .removeClass('row-selected');
+
+    // Clear map selection
+    selectInteraction.getFeatures().clear();
+});
 
 
 
