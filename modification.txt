@@ -1,0 +1,209 @@
+CSS Add or Modify:
+
+/* Needed For column contain-expand */
+
+#featureTable th,
+#featureTable td {
+  white-space: nowrap;
+}
+
+
+#featureTable th.col-collapsed,
+#featureTable td.col-collapsed {
+  width: 220px !important;
+  max-width: 220px !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+#featureTable th[data-expandable="true"] {
+  cursor: col-resize;
+}
+
+#featureTable th[data-expandable="true"]::after {
+  content: ' ⤢';
+  font-size: 0.75em;
+  color: #999;
+}
+
+
+JS Modified:
+
+function buildTableHeader(fields) {
+  const tableEl = document.getElementById('featureTable');
+  if (!tableEl) return;
+
+  tableEl.querySelector('thead')?.remove();
+
+  const thead = document.createElement('thead');
+  thead.className = 'table-light';
+
+  const tr = document.createElement('tr');
+
+  fields.forEach(f => {
+    const th = document.createElement('th');
+    th.textContent = f;
+
+    if (isLongTextField(f)) {
+      th.classList.add('col-collapsed');
+      th.style.cursor = 'col-resize';
+      th.dataset.expandable = 'true';
+    }
+
+    tr.appendChild(th);
+  });
+
+  thead.appendChild(tr);
+  tableEl.prepend(thead);
+}
+//  Modifie: for constrain-expand functionality
+function buildDataTableColumns(fields) {
+  return fields.map(f => ({
+    data: f,
+    title: f,
+    orderable: !isLongTextField(f), // ✅ disable sorting for long text
+    createdCell: function (td) {
+      if (isLongTextField(f)) {
+        td.classList.add('col-collapsed');
+      }
+    }
+  }));
+}
+
+JS Add:
+
+// ADD: Helper to include columns with long values
+
+const LONG_TEXT_KEYWORDS = [
+  'description',
+  'comment',
+  'comments',
+  'remark',
+  'remarks',
+  'notes',
+  'note',
+  'details',
+  'detail',
+  'desc'
+];
+
+function isLongTextField(fieldName) {
+  if (!fieldName) return false;
+
+  const pattern = LONG_TEXT_KEYWORDS.join('|');
+  const regex = new RegExp(pattern, 'i'); // ✅ case‑insensitive
+
+  return regex.test(fieldName);
+}
+
+function attachHeaderExpandHandler() {
+  const headInner = document.querySelector(
+    '#featureTable_wrapper .dataTables_scrollHeadInner'
+  );
+
+  if (!headInner) {
+    console.warn('scrollHeadInner not found');
+    return;
+  }
+
+  console.log('✅ Header handler attached');
+
+  let lastTime = 0;
+  const DOUBLE_CLICK_DELAY = 300;
+
+  headInner.addEventListener(
+    'mousedown',
+    function (e) {
+      const th = e.target.closest('th');
+      if (!th || th.dataset.expandable !== 'true') return;
+
+      console.log('mousedown on expandable header'); // ✅ YOU WILL SEE THIS
+
+      const now = Date.now();
+      if (now - lastTime > DOUBLE_CLICK_DELAY) {
+        lastTime = now;
+        return;
+      }
+
+      lastTime = now;
+
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const api = $('#featureTable').DataTable();
+      const idx = api.column(th).index();
+      const collapsed = th.classList.contains('col-collapsed');
+
+      th.classList.toggle('col-collapsed', !collapsed);
+      api.column(idx).nodes().to$()
+        .toggleClass('col-collapsed', !collapsed);
+
+      api.columns.adjust();
+    },
+    true // ✅ CAPTURE PHASE (mandatory)
+  );
+}
+
+JS Modified:
+
+function buildTableForLayer(layer) {
+  if (!layer?.getSource) return;
+
+  updateTableTitle(layer);
+
+  const features = layer.getSource().getFeatures();
+  if (!features.length) return;
+
+  const fields = getFeatureFields(features);
+  const rowData = featuresToRows(features, fields);
+
+  // ✅ Safely destroy existing DataTable
+  if ($.fn.DataTable.isDataTable('#featureTable')) {
+    const dt = $('#featureTable').DataTable();
+    dt.clear();
+    dt.destroy(false);
+  }
+
+  const tableEl = document.getElementById('featureTable');
+  if (!tableEl) return;
+
+  // ✅ FULL reset (critical when column count changes)
+  tableEl.querySelector('thead')?.remove();
+  tableEl.querySelector('tbody')?.remove();
+  tableEl.appendChild(document.createElement('tbody'));
+
+  buildTableHeader(fields);
+
+  const allowAll = features.length <= 2000;
+  const lengthMenu = allowAll
+    ? [[200, 500, 1000, 2000, -1], [200, 500, 1000, 2000, 'All']]
+    : [[200, 500, 1000, 2000], [200, 500, 1000, 2000]];
+
+  
+table = $('#featureTable').DataTable({
+  data: rowData,
+  columns: buildDataTableColumns(fields),
+  pageLength: 200,
+  lengthMenu,
+  scrollX: true,
+  scrollY: true,
+  scrollCollapse: true,
+  deferRender: true,
+  paging: true,
+  searching: true,
+  ordering: true,
+  autoWidth: false,
+  dom: '<"dt-top"lf>rt<"dt-bottom"ip>',
+  createdRow: function (row, data) {
+    row.dataset.uid = data._uid;
+  }
+});
+
+// ✅ VERY IMPORTANT
+setTimeout(attachHeaderExpandHandler, 0);
+  
+}
+
+
