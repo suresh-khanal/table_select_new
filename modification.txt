@@ -1,153 +1,274 @@
-CSS Add or Modify:
+Import buttons:
 
-/* Needed For column contain-expand */
+<link rel="stylesheet"  
+   href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
 
-#featureTable th,
-#featureTable td {
+
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+
+        <!-- Column visibility button -->
+        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+
+// Add styles for buttons
+
+/* Column chooser scroll behavior */
+/* Base styling for column chooser items */
+/* ===============================
+   Column chooser container
+================================ */
+.dt-button-collection {
+  position: fixed !important;
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 2000 !important;
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.375rem;
+  padding: 0.25rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Scrollbar */
+.dt-button-collection::-webkit-scrollbar {
+  width: 8px;
+}
+.dt-button-collection::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+/* ===============================
+   Top toolbar (show / hide all)
+================================ */
+.colvis-tools {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+/* Search input */
+.colvis-search {
+  margin: 0.5rem;
+}
+
+/* ===============================
+   Column item (IMPORTANT)
+   ⚠️ do NOT use flex here
+================================ */
+.dt-button-collection
+a.dt-button.buttons-columnVisibility {
+  position: relative;        /* ✅ required for absolute icons */
+  padding-right: 6.5rem;     /* ✅ space for order + arrows */
   white-space: nowrap;
 }
 
-
-#featureTable th.col-collapsed,
-#featureTable td.col-collapsed {
-  width: 220px !important;
-  max-width: 220px !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+/* Hover */
+.dt-button-collection
+a.dt-button.buttons-columnVisibility:hover {
+  background-color: #f8f9fa;
 }
 
-
-#featureTable th[data-expandable="true"] {
-  cursor: col-resize;
+/* ===============================
+   Checkmark (visibility)
+================================ */
+.dt-button-collection
+a.dt-button.buttons-columnVisibility.dt-button-active::after {
+  content: "✓";
+  position: absolute;
+  right: 5.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #198754;
+  font-weight: bold;
 }
 
-#featureTable th[data-expandable="true"]::after {
-  content: ' ⤢';
-  font-size: 0.75em;
-  color: #999;
+/* Hidden column: no mark */
+.dt-button-collection
+a.dt-button.buttons-columnVisibility:not(.dt-button-active)::after {
+  content: "";
 }
 
+/* ===============================
+   Move / order controls
+================================ */
+.col-move-controls {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+}
 
-JS Modified:
+/* Order number */
+.col-order {
+  font-size: 0.72rem;
+  color: #6c757d;
+  min-width: 1.5em;
+  text-align: right;
+}
 
-function buildTableHeader(fields) {
-  const tableEl = document.getElementById('featureTable');
-  if (!tableEl) return;
+/* Icon buttons */
+.btn-icon {
+  border: none;
+  background: none;
+  padding: 0;
+  line-height: 1;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: #6c757d;
+}
 
-  tableEl.querySelector('thead')?.remove();
+.btn-icon:hover {
+  color: #0d6efd;
+}
 
-  const thead = document.createElement('thead');
-  thead.className = 'table-light';
+/* ===============================
+   DataTables main buttons (top bar)
+================================ */
 
-  const tr = document.createElement('tr');
 
-  fields.forEach(f => {
-    const th = document.createElement('th');
-    th.textContent = f;
+// Additions/modifications
+function addColumnChooserToolbar(collection, table) {
+  if (collection.querySelector('.colvis-tools')) return;
 
-    if (isLongTextField(f)) {
-      th.classList.add('col-collapsed');
-      th.style.cursor = 'col-resize';
-      th.dataset.expandable = 'true';
-    }
+  const toolbar = document.createElement('div');
+  toolbar.className = 'colvis-tools';
+  toolbar.innerHTML = `
+    <button class="btn btn-sm btn-outline-secondary show-all">Show all</button>
+    <button class="btn btn-sm btn-outline-secondary hide-all">Hide all</button>
+  `;
 
-    tr.appendChild(th);
+  toolbar.addEventListener('click', e => e.stopPropagation());
+  toolbar.addEventListener('mousedown', e => e.stopPropagation());
+
+  collection.prepend(toolbar);
+
+  toolbar.querySelector('.show-all').onclick =
+    () => table.columns().visible(true);
+
+  toolbar.querySelector('.hide-all').onclick =
+    () => table.columns().visible(false);
+}
+// Column Search
+function addColumnSearch(collection) {
+  if (collection.querySelector('.colvis-search')) return;
+
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.placeholder = 'Search columns…';
+  search.className = 'form-control form-control-sm colvis-search';
+
+  search.addEventListener('click', e => e.stopPropagation());
+  search.addEventListener('mousedown', e => e.stopPropagation());
+  search.addEventListener('keydown', e => e.stopPropagation());
+
+  search.addEventListener('input', () => {
+    const q = search.value.toLowerCase();
+    collection.querySelectorAll(
+      'a.dt-button.buttons-columnVisibility'
+    ).forEach(item => {
+      item.style.display =
+        item.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
   });
 
-  thead.appendChild(tr);
-  tableEl.prepend(thead);
+  collection.prepend(search);
 }
-//  Modifie: for constrain-expand functionality
-function buildDataTableColumns(fields) {
-  return fields.map(f => ({
-    data: f,
-    title: f,
-    orderable: !isLongTextField(f), // ✅ disable sorting for long text
-    createdCell: function (td) {
-      if (isLongTextField(f)) {
-        td.classList.add('col-collapsed');
-      }
-    }
-  }));
+//  Enhance Columns
+function enhanceColumnItems(collection, table) {
+  if (!table.colReorder) return;
+
+  collection
+    .querySelectorAll('a.dt-button.buttons-columnVisibility')
+    .forEach(item => {
+
+      // ✅ prevent duplicate injection
+      if (item.querySelector('.col-move-controls')) return;
+
+      const originalIdx = Number(item.dataset.cvIdx);
+      if (Number.isNaN(originalIdx)) return;
+
+      /* ---------------------------
+         Create controls
+      ----------------------------*/
+      const controls = document.createElement('span');
+      controls.className = 'col-move-controls';
+
+      controls.innerHTML = `
+        <span class="col-order"></span>
+        <button type="button" class="btn-icon move-start" title="Move to start">⏮</button>
+        <button type="button" class="btn-icon move-left"  title="Move left">◀</button>
+        <button type="button" class="btn-icon move-right" title="Move right">▶</button>
+        <button type="button" class="btn-icon move-end"   title="Move to end">⏭</button>
+      `;
+
+      /* ✅ CRITICAL:
+         prevent BOTH default + propagation so
+         icon clicks do NOT toggle column visibility
+      */
+      controls.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      controls.addEventListener('mousedown', e => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+
+      item.appendChild(controls);
+
+      /* ---------------------------
+         Helpers
+      ----------------------------*/
+      const getCurrentIndex = () =>
+        table.column(originalIdx).index('fromOriginal');
+
+      const updateOrderNumber = () => {
+        const idx = getCurrentIndex();
+        controls.querySelector('.col-order').textContent =
+          typeof idx === 'number' ? idx + 1 : '';
+      };
+
+      updateOrderNumber();
+
+      const move = toFn => {
+        const from = getCurrentIndex();
+        if (typeof from !== 'number') return;
+
+        const to = toFn(table.columns().count());
+        if (to < 0 || to >= table.columns().count()) return;
+
+        table.colReorder.move(from, to);
+        table.columns.adjust();
+
+        // ✅ update number only (NO DOM rebuild)
+        updateOrderNumber();
+      };
+
+      /* ---------------------------
+         Actions
+      ----------------------------*/
+      controls.querySelector('.move-start').onclick =
+        () => move(() => 0);
+
+      controls.querySelector('.move-end').onclick =
+        () => move(len => len - 1);
+
+      controls.querySelector('.move-left').onclick =
+        () => move(() => getCurrentIndex() - 1);
+
+      controls.querySelector('.move-right').onclick =
+        () => move(() => getCurrentIndex() + 1);
+    });
 }
 
-JS Add:
 
-// ADD: Helper to include columns with long values
-
-const LONG_TEXT_KEYWORDS = [
-  'description',
-  'comment',
-  'comments',
-  'remark',
-  'remarks',
-  'notes',
-  'note',
-  'details',
-  'detail',
-  'desc'
-];
-
-function isLongTextField(fieldName) {
-  if (!fieldName) return false;
-
-  const pattern = LONG_TEXT_KEYWORDS.join('|');
-  const regex = new RegExp(pattern, 'i'); // ✅ case‑insensitive
-
-  return regex.test(fieldName);
-}
-
-function attachHeaderExpandHandler() {
-  const headInner = document.querySelector(
-    '#featureTable_wrapper .dataTables_scrollHeadInner'
-  );
-
-  if (!headInner) {
-    console.warn('scrollHeadInner not found');
-    return;
-  }
-
-  console.log('✅ Header handler attached');
-
-  let lastTime = 0;
-  const DOUBLE_CLICK_DELAY = 300;
-
-  headInner.addEventListener(
-    'mousedown',
-    function (e) {
-      const th = e.target.closest('th');
-      if (!th || th.dataset.expandable !== 'true') return;
-
-      console.log('mousedown on expandable header'); // ✅ YOU WILL SEE THIS
-
-      const now = Date.now();
-      if (now - lastTime > DOUBLE_CLICK_DELAY) {
-        lastTime = now;
-        return;
-      }
-
-      lastTime = now;
-
-      e.preventDefault();
-      e.stopImmediatePropagation();
-
-      const api = $('#featureTable').DataTable();
-      const idx = api.column(th).index();
-      const collapsed = th.classList.contains('col-collapsed');
-
-      th.classList.toggle('col-collapsed', !collapsed);
-      api.column(idx).nodes().to$()
-        .toggleClass('col-collapsed', !collapsed);
-
-      api.columns.adjust();
-    },
-    true // ✅ CAPTURE PHASE (mandatory)
-  );
-}
-
-JS Modified:
-
+// Layer Switcher → Populate FeatureList & Table
 function buildTableForLayer(layer) {
   if (!layer?.getSource) return;
 
@@ -194,16 +315,76 @@ table = $('#featureTable').DataTable({
   paging: true,
   searching: true,
   ordering: true,
-  autoWidth: false,
-  dom: '<"dt-top"lf>rt<"dt-bottom"ip>',
+  autoWidth: false,  
+  colReorder: {
+    realtime: false   // ✅ smoother with many columns
+  },
+
+  
+// 🔽 UPDATED dom
+  dom: '<"dt-top"lfB>rt<"dt-bottom"ip>',
+
+  // 🔽 ADD THIS
+  buttons: [
+    {
+      extend: 'colvis',
+      text: 'Columns',
+      className: 'btn btn-sm btn-outline-secondary',
+    //   columns: ':not(:first-child)' // optional
+    }
+  ],
+
   createdRow: function (row, data) {
     row.dataset.uid = data._uid;
   }
 });
+table.on('column-visibility.dt', function () {
+  table.columns.adjust();
+});
+table.buttons().container().on('click', '.buttons-collection', function () {
+  setTimeout(() => {
+    const collection = document.querySelector('.dt-button-collection');
+    if (!collection) return;
+
+    /* ---------- placement logic (unchanged) ---------- */
+    if (!collection.dataset.moved) {
+      document.body.appendChild(collection);
+      collection.dataset.moved = 'true';
+    }
+
+    const btnRect = this.getBoundingClientRect();
+    const menuRect = collection.getBoundingClientRect();
+    const gap = 6;
+    const vh = window.innerHeight;
+    const vw = window.innerWidth;
+
+    collection.style.position = 'fixed';
+    collection.style.top = '';
+    collection.style.bottom = '';
+    collection.style.left = '';
+
+    if ((vh - btnRect.bottom) < menuRect.height && btnRect.top > menuRect.height / 2) {
+      collection.style.bottom = vh - btnRect.top + gap + 'px';
+    } else {
+      collection.style.top = btnRect.bottom + gap + 'px';
+    }
+
+    let left = btnRect.left;
+    if (left + menuRect.width > vw - 8) left = vw - menuRect.width - 8;
+    if (left < 8) left = 8;
+    collection.style.left = left + 'px';
+    collection.style.zIndex = 2000;
+    
+    addColumnChooserToolbar(collection, table);
+    addColumnSearch(collection);
+    enhanceColumnItems(collection, table);
+
+
+  }, 0);
+});
+
+
 
 // ✅ VERY IMPORTANT
 setTimeout(attachHeaderExpandHandler, 0);
-  
 }
-
-
