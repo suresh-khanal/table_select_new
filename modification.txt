@@ -1,14 +1,46 @@
 Import buttons:
 
-<link rel="stylesheet"  
-   href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css">
+ <!-- jQuery (required) -->
+   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+ <link
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+  rel="stylesheet">
 
+<!-- DataTables Bootstrap 5 CSS -->
+<link
+  href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css"
+  rel="stylesheet">
 
-        <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<!-- Buttons + ColReorder CSS -->
+<link
+  href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css"
+  rel="stylesheet">
 
-        <!-- Column visibility button -->
-        <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+<link href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css" rel="stylesheet">
+  <!-- Bootstrap and related imports end  -->
+  
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <!-- DataTables Bootstrap 5 integration -->
+    <script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Buttons -->
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.colVis.min.js"></script>
+
+    <!-- ColReorder -->
+    <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+    <script src="https://cdn.datatables.net/colreorder/1.6.2/js/colReorder.bootstrap5.min.js"></script>
+
+    <!-- ✅ Bootstrap JS bundle (REQUIRED for dropdown behavior) -->
+    <script
+    src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+    </script>
+<!--  Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>	
+	
 
 // Add styles for buttons
 
@@ -58,12 +90,14 @@ Import buttons:
    Column item (IMPORTANT)
    ⚠️ do NOT use flex here
 ================================ */
+
 .dt-button-collection
 a.dt-button.buttons-columnVisibility {
-  position: relative;        /* ✅ required for absolute icons */
-  padding-right: 6.5rem;     /* ✅ space for order + arrows */
+  position: relative;
+  padding-right: 7.5rem;   /* space for ✓ + order + icons */
   white-space: nowrap;
 }
+
 
 /* Hover */
 .dt-button-collection
@@ -74,16 +108,18 @@ a.dt-button.buttons-columnVisibility:hover {
 /* ===============================
    Checkmark (visibility)
 ================================ */
+
 .dt-button-collection
 a.dt-button.buttons-columnVisibility.dt-button-active::after {
   content: "✓";
   position: absolute;
-  right: 5.5rem;
+  right: 4.0rem;
   top: 50%;
-  transform: translateY(-50%);
+  /* transform: translateY(-50%); */
   color: #198754;
-  font-weight: bold;
+  font-weight: 600;
 }
+
 
 /* Hidden column: no mark */
 .dt-button-collection
@@ -94,46 +130,85 @@ a.dt-button.buttons-columnVisibility:not(.dt-button-active)::after {
 /* ===============================
    Move / order controls
 ================================ */
+
 .col-move-controls {
   position: absolute;
   right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
   display: inline-flex;
-  gap: 0.35rem;
   align-items: center;
+  gap: 0.4rem;
 }
 
+
 /* Order number */
+
 .col-order {
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   color: #6c757d;
-  min-width: 1.5em;
+  width: 1.25em;
   text-align: right;
 }
 
+
 /* Icon buttons */
+
 .btn-icon {
   border: none;
   background: none;
   padding: 0;
-  line-height: 1;
   font-size: 0.8rem;
   cursor: pointer;
-  color: #6c757d;
+  color: #d1d1d1;
 }
 
 .btn-icon:hover {
   color: #0d6efd;
 }
 
+
+
 /* ===============================
    DataTables main buttons (top bar)
 ================================ */
+.dt-buttons .btn,
+.dt-buttons .dt-button {
+  color: #212529 !important;
+  background-color: #f8f9fa !important;
+  border: 1px solid #ced4da !important;
+}
 
+.dt-buttons .btn:hover,
+.dt-buttons .dt-button:hover {
+  background-color: #e9ecef !important;
+}
+
+.dt-buttons .btn:active,
+.dt-buttons .dt-button:active {
+  background-color: #dee2e6 !important;
+}
+
+.dt-buttons .btn {
+  margin-right: 0.25rem;
+}
+
+.view-tools .dt-buttons .btn {
+  margin-left: 0.25rem;
+}
+
+.export-tools .btn {
+  margin-left: 0.25rem;
+}
+
+
+//Javascripts
+
+// Additions/modifications
 
 // Additions/modifications
 function addColumnChooserToolbar(collection, table) {
+   if (!collection.querySelector('a.buttons-columnVisibility')) return;
   if (collection.querySelector('.colvis-tools')) return;
 
   const toolbar = document.createElement('div');
@@ -156,6 +231,7 @@ function addColumnChooserToolbar(collection, table) {
 }
 // Column Search
 function addColumnSearch(collection) {
+   if (!collection.querySelector('a.buttons-columnVisibility')) return;
   if (collection.querySelector('.colvis-search')) return;
 
   const search = document.createElement('input');
@@ -181,60 +257,40 @@ function addColumnSearch(collection) {
 }
 //  Enhance Columns
 function enhanceColumnItems(collection, table) {
+   if (!collection.querySelector('a.buttons-columnVisibility')) return;
   if (!table.colReorder) return;
 
   collection
     .querySelectorAll('a.dt-button.buttons-columnVisibility')
     .forEach(item => {
 
-      // ✅ prevent duplicate injection
       if (item.querySelector('.col-move-controls')) return;
 
       const originalIdx = Number(item.dataset.cvIdx);
       if (Number.isNaN(originalIdx)) return;
 
-      /* ---------------------------
-         Create controls
-      ----------------------------*/
       const controls = document.createElement('span');
       controls.className = 'col-move-controls';
 
       controls.innerHTML = `
-        <span class="col-order"></span>
-        <button type="button" class="btn-icon move-start" title="Move to start">⏮</button>
-        <button type="button" class="btn-icon move-left"  title="Move left">◀</button>
-        <button type="button" class="btn-icon move-right" title="Move right">▶</button>
-        <button type="button" class="btn-icon move-end"   title="Move to end">⏭</button>
+        <button type="button" class="btn-icon move-start" title="Move to start">↟</button>
+        <button type="button" class="btn-icon move-left"  title="Move left">↑</button>
+        <button type="button" class="btn-icon move-right" title="Move right">↓</button>
+        <button type="button" class="btn-icon move-end"   title="Move to end">↡</button>
       `;
 
-      /* ✅ CRITICAL:
-         prevent BOTH default + propagation so
-         icon clicks do NOT toggle column visibility
-      */
-      controls.addEventListener('click', e => {
-        e.preventDefault();
-        e.stopPropagation();
-      });
-      controls.addEventListener('mousedown', e => {
-        e.preventDefault();
-        e.stopPropagation();
-      });
+      // prevent column toggle
+      ['click', 'mousedown'].forEach(evt =>
+        controls.addEventListener(evt, e => {
+          e.preventDefault();
+          e.stopPropagation();
+        })
+      );
 
       item.appendChild(controls);
 
-      /* ---------------------------
-         Helpers
-      ----------------------------*/
       const getCurrentIndex = () =>
         table.column(originalIdx).index('fromOriginal');
-
-      const updateOrderNumber = () => {
-        const idx = getCurrentIndex();
-        controls.querySelector('.col-order').textContent =
-          typeof idx === 'number' ? idx + 1 : '';
-      };
-
-      updateOrderNumber();
 
       const move = toFn => {
         const from = getCurrentIndex();
@@ -245,26 +301,40 @@ function enhanceColumnItems(collection, table) {
 
         table.colReorder.move(from, to);
         table.columns.adjust();
-
-        // ✅ update number only (NO DOM rebuild)
-        updateOrderNumber();
       };
 
-      /* ---------------------------
-         Actions
-      ----------------------------*/
-      controls.querySelector('.move-start').onclick =
-        () => move(() => 0);
-
-      controls.querySelector('.move-end').onclick =
-        () => move(len => len - 1);
-
-      controls.querySelector('.move-left').onclick =
-        () => move(() => getCurrentIndex() - 1);
-
-      controls.querySelector('.move-right').onclick =
-        () => move(() => getCurrentIndex() + 1);
+      controls.querySelector('.move-start').onclick = () => move(() => 0);
+      controls.querySelector('.move-end').onclick   = () => move(n => n - 1);
+      controls.querySelector('.move-left').onclick  = () => move(() => getCurrentIndex() - 1);
+      controls.querySelector('.move-right').onclick = () => move(() => getCurrentIndex() + 1);
     });
+}
+
+let colVisObserver;
+
+function observeColVisMenu(table) {
+  const collection = document.querySelector('.dt-button-collection');
+  if (!collection || colVisObserver) return;
+   if (!collection.querySelector('a.buttons-columnVisibility')) return;
+
+  colVisObserver = new MutationObserver(() => {
+    enhanceColumnItems(collection, table);
+  });
+
+  colVisObserver.observe(collection, {
+    childList: true,
+    subtree: true
+  });
+}
+//  Helper for exported spreadsheet name
+function getExportFilename() {
+  const title = document.querySelector('#featureListHeader .table-title')
+    ?.textContent
+    ?.replace(/\s+/g, '_')
+    ?? 'Attribute_Table';
+
+  const date = new Date().toISOString().slice(0, 10);
+  return `${title}_${date}`;
 }
 
 
@@ -322,66 +392,176 @@ table = $('#featureTable').DataTable({
 
   
 // 🔽 UPDATED dom
-  dom: '<"dt-top"lfB>rt<"dt-bottom"ip>',
+  
+dom: `<"dt-top d-flex justify-content-between align-items-center"
+        <"view-tools d-flex align-items-center gap-2"lBf>
+        <"export-tools">
+      >
+      rt
+      <"dt-bottom"ip>`,
+
 
   // 🔽 ADD THIS
-  buttons: [
+  
+buttons: [
+  
     {
       extend: 'colvis',
       text: 'Columns',
-      className: 'btn btn-sm btn-outline-secondary',
-    //   columns: ':not(:first-child)' // optional
+      className: 'btn btn-sm btn-outline-secondary btn-columns'
     }
-  ],
+    ,
+
+  {
+    extend: 'collection',
+    text: 'Export',
+    className: 'btn btn-sm btn-outline-primary buttons-export',
+    buttons: [
+
+      // ✅ Excel (primary)
+      {
+        extend: 'excelHtml5',
+        text: 'Excel (.xlsx)',
+        filename: () => getExportFilename(),
+        sheetName: 'Attributes',
+        exportOptions: {
+          columns: ':visible'
+        }
+      },
+
+      // ✅ CSV
+      {
+        extend: 'csvHtml5',
+        text: 'CSV (.csv)',
+        filename: () => getExportFilename(),
+        exportOptions: {
+          columns: ':visible'
+        }
+      },
+
+      // ✅ JSON (custom action)
+      {
+        text: 'JSON (.json)',
+        action: function (e, dt, button, config) {
+
+          // Visible columns only, in current order
+          const columns = dt.columns(':visible').indexes().toArray();
+
+          // Rows respect current search/filter
+          const data = dt
+            .rows({ search: 'applied' })
+            .data()
+            .toArray()
+            .map(row => {
+              const obj = {};
+              columns.forEach(idx => {
+                const colName =
+                  dt.column(idx).header().textContent.trim();
+                const dataKey = dt.column(idx).dataSrc();
+                obj[colName] = row[dataKey];
+              });
+              return obj;
+            });
+
+          // Download as JSON
+          const blob = new Blob(
+            [JSON.stringify(data, null, 2)],
+            { type: 'application/json' }
+          );
+
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${getExportFilename()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }
+      }
+    ]
+  }
+],
+
 
   createdRow: function (row, data) {
     row.dataset.uid = data._uid;
   }
 });
+
+// Move export buttons into export-tools container
+table.buttons([
+  '.buttons-export-excel',
+  '.buttons-export-csv',
+  '.buttons-export-json'
+]).containers().appendTo('.export-tools');
+
 table.on('column-visibility.dt', function () {
   table.columns.adjust();
 });
-table.buttons().container().on('click', '.buttons-collection', function () {
-  setTimeout(() => {
-    const collection = document.querySelector('.dt-button-collection');
-    if (!collection) return;
+table.buttons().container().on(
+  'click',
+  '.buttons-collection',
+  function () {
 
-    /* ---------- placement logic (unchanged) ---------- */
-    if (!collection.dataset.moved) {
-      document.body.appendChild(collection);
-      collection.dataset.moved = 'true';
-    }
+    // ✅ NEW: determine which button opened the dropdown
+    const isColumnsButton = this.classList.contains('btn-columns');
+    const isExportButton  = this.classList.contains('btn-export');
 
-    const btnRect = this.getBoundingClientRect();
-    const menuRect = collection.getBoundingClientRect();
-    const gap = 6;
-    const vh = window.innerHeight;
-    const vw = window.innerWidth;
+    // ✅ wait for DataTables to inject the dropdown
+    setTimeout(() => {
+      const collection = document.querySelector('.dt-button-collection');
+      if (!collection) return;
 
-    collection.style.position = 'fixed';
-    collection.style.top = '';
-    collection.style.bottom = '';
-    collection.style.left = '';
+      /* ===============================
+         KEEP your positioning logic
+      ================================ */
+      if (!collection.dataset.moved) {
+        document.body.appendChild(collection);
+        collection.dataset.moved = 'true';
+      }
 
-    if ((vh - btnRect.bottom) < menuRect.height && btnRect.top > menuRect.height / 2) {
-      collection.style.bottom = vh - btnRect.top + gap + 'px';
-    } else {
-      collection.style.top = btnRect.bottom + gap + 'px';
-    }
+      const btnRect = this.getBoundingClientRect();
+      const menuRect = collection.getBoundingClientRect();
+      const gap = 6;
+      const vh = window.innerHeight;
+      const vw = window.innerWidth;
 
-    let left = btnRect.left;
-    if (left + menuRect.width > vw - 8) left = vw - menuRect.width - 8;
-    if (left < 8) left = 8;
-    collection.style.left = left + 'px';
-    collection.style.zIndex = 2000;
-    
-    addColumnChooserToolbar(collection, table);
-    addColumnSearch(collection);
-    enhanceColumnItems(collection, table);
+      collection.style.position = 'fixed';
+      collection.style.top = '';
+      collection.style.bottom = '';
+      collection.style.left = '';
 
+      if ((vh - btnRect.bottom) < menuRect.height &&
+          btnRect.top > menuRect.height / 2) {
+        collection.style.bottom = vh - btnRect.top + gap + 'px';
+      } else {
+        collection.style.top = btnRect.bottom + gap + 'px';
+      }
 
-  }, 0);
-});
+      let left = btnRect.left;
+      if (left + menuRect.width > vw - 8) left = vw - menuRect.width - 8;
+      if (left < 8) left = 8;
+      collection.style.left = left + 'px';
+      collection.style.zIndex = 2000;
+
+      /* ===============================
+         ✅ APPLY ENHANCEMENTS ONLY
+         ✅ WHEN COLUMNS MENU IS OPEN
+      ================================ */
+      if (isColumnsButton) {
+        addColumnChooserToolbar(collection, table);
+        addColumnSearch(collection);
+        enhanceColumnItems(collection, table);
+        observeColVisMenu(table);
+      }
+
+      // ✅ For Export dropdown: do NOTHING extra
+
+    }, 0);
+  }
+);
+
 
 
 
